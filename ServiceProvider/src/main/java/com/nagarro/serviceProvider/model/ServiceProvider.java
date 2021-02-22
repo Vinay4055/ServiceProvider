@@ -1,4 +1,4 @@
-package com.nagarro.serviceProvider.entity;
+package com.nagarro.serviceProvider.model;
 
 import java.util.List;
 
