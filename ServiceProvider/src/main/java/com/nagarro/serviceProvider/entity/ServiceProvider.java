@@ -7,6 +7,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ServiceProvider {
+	public ServiceProvider() {
+		
+	}
 	public ServiceProvider(String id, String firstName, String lastName, String title, String email, String telePhone,
 			String address, String district, String city, String state, Integer zip, String country, String password,
 			String categoryId, List<String> notificationId, List<String> serviceRequestId) {
@@ -44,5 +47,10 @@ public class ServiceProvider {
 	String categoryId;
 	List<String> notificationId;
 	List<String> serviceRequestId;
+	@Override
+	public String toString() {
+		return "ServiceProvider [id=" + id + ", firstName=" + firstName + ", lastName=" + lastName + ", categoryId="
+				+ categoryId + ", notificationId=" + notificationId + ", serviceRequestId=" + serviceRequestId + "]";
+	}
 
 }

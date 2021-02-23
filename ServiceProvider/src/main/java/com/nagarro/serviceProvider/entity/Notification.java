@@ -21,4 +21,10 @@ public class Notification {
 	LocalDateTime date;
 	NotificationStatus status;
 	String serviceRequestId;
+	@Override
+	public String toString() {
+		return "Notification [id=" + id + ", date=" + date + ", status=" + status + ", serviceRequestId="
+				+ serviceRequestId + "]";
+	}
+	
 }

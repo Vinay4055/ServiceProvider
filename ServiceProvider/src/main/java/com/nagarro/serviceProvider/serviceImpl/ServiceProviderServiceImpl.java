@@ -53,21 +53,22 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
 
 	@Override
 	public ServiceProvider getServiceProviderById(String serviceProviderId) {
-		Optional<ServiceProvider> searchedServiceProvider = serviceProviderList.stream().filter(serviceProvider->serviceProvider.getId().equals(serviceProviderId)).findFirst();
-		if(searchedServiceProvider.isPresent()) {
+		Optional<ServiceProvider> searchedServiceProvider = serviceProviderList.stream()
+				.filter(serviceProvider -> serviceProvider.getId().equals(serviceProviderId)).findFirst();
+		if (searchedServiceProvider.isPresent()) {
 			return searchedServiceProvider.get();
-		}
-		else
+		} else
 			return null;
 	}
 
 	@Override
 	public List<ServiceProvider> getServiceProvidersBasedOnDistrict(String district) {
-		List<ServiceProvider> searchedServiceProviderList = serviceProviderList.stream().filter(serviceProvider->serviceProvider.getDistrict().equalsIgnoreCase(district)).collect(Collectors.toList());
-		if(!searchedServiceProviderList.isEmpty()) {
+		List<ServiceProvider> searchedServiceProviderList = serviceProviderList.stream()
+				.filter(serviceProvider -> serviceProvider.getDistrict().equalsIgnoreCase(district))
+				.collect(Collectors.toList());
+		if (!searchedServiceProviderList.isEmpty()) {
 			return searchedServiceProviderList;
-		}
-		else
+		} else
 			return null;
 	}
 
@@ -87,6 +88,25 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
 	public Boolean editServiceProvider(ServiceProvider serviceProvider) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public List<ServiceProvider> filterServiceProviderBasedOnServiceCategory(List<ServiceProvider> serviceProviderList,
+			String categoryId) {
+		return serviceProviderList.stream()
+				.filter(serviceProvider -> serviceProvider.getCategoryId().equals(categoryId))
+				.collect(Collectors.toList());
+	}
+	@Override
+	public void updateServiceProviderList(List<ServiceProvider> modifiedList) {
+		for(ServiceProvider modifiedRecord:modifiedList) {
+			for(ServiceProvider actualRecord:serviceProviderList) {
+					if(modifiedRecord.getId().equals(actualRecord.getId())){
+						actualRecord.setNotificationId(modifiedRecord.getNotificationId());
+						actualRecord.setServiceRequestId(modifiedRecord.getServiceRequestId());
+					}
+			}
+		}
 	}
 
 }

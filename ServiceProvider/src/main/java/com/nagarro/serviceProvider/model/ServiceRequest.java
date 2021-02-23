@@ -1,5 +1,7 @@
 package com.nagarro.serviceProvider.model;
 
+import java.io.Serializable;
+
 import javax.validation.constraints.NotEmpty;
 
 import com.nagarro.serviceProvider.common.ServiceRequestStatus;
@@ -8,8 +10,7 @@ import lombok.Getter;
 import lombok.Setter;
 @Getter
 @Setter
-public class ServiceRequest {
-	@NotEmpty(message = "ServiceRequestId is Mandatory")
+public class ServiceRequest implements Serializable{
 	String id;
 	@NotEmpty(message = "ServiceId is Mandatory")
 	String serviceId;

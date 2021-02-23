@@ -12,4 +12,6 @@ public interface ServiceProviderService {
 	public Boolean createServiceProvider(ServiceProvider serviceProvider);
 	public Boolean deleteServiceProvider(String serviceProviderId);
 	public Boolean editServiceProvider(ServiceProvider serviceProvider);
+	public List<ServiceProvider> filterServiceProviderBasedOnServiceCategory(List<ServiceProvider> serviceProviderList,String categoryId);
+	public void updateServiceProviderList(List<ServiceProvider> modifiedList);
 }

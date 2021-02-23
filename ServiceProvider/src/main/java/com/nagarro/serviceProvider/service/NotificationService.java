@@ -9,7 +9,6 @@ import com.nagarro.serviceProvider.entity.ServiceProvider;
 
 @Service
 public interface NotificationService {
-	public void sendsNotificationToServiceProvider(ServiceProvider serviceProvider,String serviceRequestId);
-	public void SendsNotificationToServiceProviderList(List<ServiceProvider> serviceProvider,String serviceRequestId);
+	public void sendsNotificationToServiceProviderList(List<ServiceProvider> serviceProvider,String serviceRequestId);
 
 }
