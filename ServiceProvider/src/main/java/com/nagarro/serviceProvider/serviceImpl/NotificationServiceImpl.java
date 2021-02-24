@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import com.google.gson.Gson;
 import com.nagarro.serviceProvider.Mapper;
 import com.nagarro.serviceProvider.common.NotificationStatus;
+import com.nagarro.serviceProvider.common.ServiceRequestStatus;
 import com.nagarro.serviceProvider.delegate.ServiceProviderDelegate;
 import com.nagarro.serviceProvider.entity.Notification;
 import com.nagarro.serviceProvider.entity.ServiceProvider;
@@ -31,6 +32,7 @@ public class NotificationServiceImpl implements NotificationService {
 	@Autowired
 	Mapper mapper;
 	static List<Notification> notificationList = new ArrayList<>();
+	static List<ServiceRequest> serviceRequestList = new ArrayList<>();
 	static {
 		notificationList.add(new Notification("1", LocalDateTime.now(), NotificationStatus.ACCEPT, "1"));
 		notificationList.add(new Notification("2", LocalDateTime.now(), NotificationStatus.ACCEPT, "2"));
@@ -43,8 +45,6 @@ public class NotificationServiceImpl implements NotificationService {
 		notificationList.add(new Notification("9", LocalDateTime.now(), NotificationStatus.ACCEPT, "9"));
 	}
 
-	
-
 	@Override
 	public void sendsNotificationToServiceProviderList(List<ServiceProvider> serviceProviderList,
 			String serviceRequestId) {
@@ -53,6 +53,7 @@ public class NotificationServiceImpl implements NotificationService {
 		notificationList.add(notification);
 		for (ServiceProvider serviceProvider : serviceProviderList) {
 			serviceProvider.getNotificationId().add(notification.getId());
+			System.out.println("Notification Sent With Notification Entity " + notification);
 		}
 		serviceProviderService.updateServiceProviderList(serviceProviderList);
 		/*
@@ -66,13 +67,77 @@ public class NotificationServiceImpl implements NotificationService {
 	@JmsListener(destination = "ServiceRequestReceivedFromAdmin")
 	public void acceptServiceRequestEvent(String serviceRequest) {
 		NotificationRequest notificationRequestObject = gson.fromJson(serviceRequest, NotificationRequest.class);
-		System.out.println("Service ID = "+notificationRequestObject.getServiceRequest().getServiceId());
+		System.out.println("Service ID = " + notificationRequestObject.getServiceRequest().getServiceId());
 		String categoryId = serviceProviderDelegate
 				.callServiceProvidedAndGetCategoryId(notificationRequestObject.getServiceRequest().getServiceId());
 		List<ServiceProvider> serviceProviderList = serviceProviderService.filterServiceProviderBasedOnServiceCategory(
 				mapper.convertServiceProviderModelListToEntityList(notificationRequestObject.getServiceProviderList()),
 				categoryId);
-		sendsNotificationToServiceProviderList(serviceProviderList,notificationRequestObject.getServiceRequest().getId());
+		serviceRequestList
+				.add(mapper.convertServiceRequestModelToEntity(notificationRequestObject.getServiceRequest()));
+		sendsNotificationToServiceProviderList(serviceProviderList,
+				notificationRequestObject.getServiceRequest().getId());
+	}
+
+	public static Notification getNotificationFromNotificationId(String notificationId) {
+
+		for (Notification notification : notificationList) {
+			if (notification.getId().equals(notificationId)) {
+				return notification;
+
+			}
+
+		}
+		return null;
+	}
+
+	public static List<Notification> getNotificationListFromNotificationIdList(List<String> notificationIdList) {
+		List<Notification> notificationListResult = new ArrayList<>();
+		for (String notificationId : notificationIdList) {
+			for (Notification notification : notificationList) {
+				if (notification.getId().equals(notificationId)) {
+					notificationListResult.add(notification);
+					break;
+				}
+			}
+		}
+		return notificationListResult;
+	}
+
+	@Override
+	public List<Notification> getPendingNotifications(String serviceProviderId) {
+		ServiceProvider serviceProvider = serviceProviderService.getServiceProviderById(serviceProviderId);
+		List<String> notificationIdList = serviceProvider.getNotificationId();
+
+		List<Notification> notificationListOfServiceProvider = getNotificationListFromNotificationIdList(
+				notificationIdList);
+		System.out.println("Motification ID List = " + notificationListOfServiceProvider);
+		List<Notification> pendingNotification = new ArrayList<>();
+		for (Notification notification : notificationListOfServiceProvider) {
+			if (notification.getStatus().compareTo(NotificationStatus.PENDING) == 0) {
+				pendingNotification.add(notification);
+			}
+		}
+		System.out.println("SERVICE PROVIDER = " + serviceProvider);
+		System.out.println("Pending Notification = " + pendingNotification);
+		return pendingNotification;
+	}
+
+	@Override
+	public List<Notification> getAcceptedNotifications(String serviceProviderId) {
+		ServiceProvider serviceProvider = serviceProviderService.getServiceProviderById(serviceProviderId);
+		List<String> notificationIdList = serviceProvider.getNotificationId();
+
+		List<Notification> notificationListOfServiceProvider = getNotificationListFromNotificationIdList(
+				notificationIdList);
+		List<Notification> acceptedNotification = new ArrayList<>();
+		for (Notification notification : notificationListOfServiceProvider) {
+			if (notification.getStatus().compareTo(NotificationStatus.ACCEPT) == 0) {
+				acceptedNotification.add(notification);
+			}
+		}
+
+		return acceptedNotification;
 	}
 
 }

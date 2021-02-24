@@ -10,7 +10,7 @@ import lombok.Getter;
 import lombok.Setter;
 @Getter
 @Setter
-public class ServiceRequest implements Serializable{
+public class ServiceRequest {
 	String id;
 	@NotEmpty(message = "ServiceId is Mandatory")
 	String serviceId;

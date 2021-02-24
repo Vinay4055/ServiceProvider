@@ -1,13 +1,12 @@
 package com.nagarro.serviceProvider.model;
 
-import java.io.Serializable;
 import java.util.List;
 
 import lombok.Getter;
 import lombok.Setter;
 @Getter
 @Setter
-public class ServiceProvider implements Serializable{
+public class ServiceProvider {
 	String id;
 	String firstName;
 	String lastName;

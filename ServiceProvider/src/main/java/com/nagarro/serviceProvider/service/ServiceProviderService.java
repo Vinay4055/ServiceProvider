@@ -14,4 +14,7 @@ public interface ServiceProviderService {
 	public Boolean editServiceProvider(ServiceProvider serviceProvider);
 	public List<ServiceProvider> filterServiceProviderBasedOnServiceCategory(List<ServiceProvider> serviceProviderList,String categoryId);
 	public void updateServiceProviderList(List<ServiceProvider> modifiedList);
+	public Boolean acceptPendingNotification(String serviceProviderId,String notificationId);
+	public Boolean denyPendingNotification(String serviceProviderId,String notificationId);
+	
 }

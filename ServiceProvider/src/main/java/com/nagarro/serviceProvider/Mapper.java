@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.nagarro.serviceProvider.model.ServiceProvider;
+import com.nagarro.serviceProvider.model.ServiceRequest;
 
 @Component
 public class Mapper {
@@ -54,5 +55,8 @@ public class Mapper {
 		}
 		return convertedList;
 	}
-
+	public com.nagarro.serviceProvider.entity.ServiceRequest convertServiceRequestModelToEntity(
+			ServiceRequest source) {
+		return modelMapper.map(source, com.nagarro.serviceProvider.entity.ServiceRequest.class);
+	}
 }
