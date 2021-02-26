@@ -43,25 +43,54 @@ public class NotificationServiceImpl implements NotificationService {
 		notificationList.add(new Notification("7", LocalDateTime.now(), NotificationStatus.ACCEPT, "7"));
 		notificationList.add(new Notification("8", LocalDateTime.now(), NotificationStatus.ACCEPT, "8"));
 		notificationList.add(new Notification("9", LocalDateTime.now(), NotificationStatus.ACCEPT, "9"));
+		serviceRequestList.add(new ServiceRequest("1", "1", "25-02-2021", "xyz@gmail.com", "vkvinay180@gmail.com", "NA",
+				ServiceRequestStatus.CONFIRMED));
+		serviceRequestList.add(new ServiceRequest("2", "1", "25-02-2021", "xyz@gmail.com", "vkvinay180@gmail.com", "NA",
+				ServiceRequestStatus.CONFIRMED));
+		serviceRequestList.add(new ServiceRequest("3", "1", "25-02-2021", "xyz@gmail.com", "vkvinay180@gmail.com", "NA",
+				ServiceRequestStatus.CONFIRMED));
+		serviceRequestList.add(new ServiceRequest("4", "1", "25-02-2021", "xyz@gmail.com", "gouravkansal0@gmail.com",
+				"NA", ServiceRequestStatus.CONFIRMED));
+		serviceRequestList.add(new ServiceRequest("5", "1", "25-02-2021", "xyz@gmail.com", "gouravkansal0@gmail.com",
+				"NA", ServiceRequestStatus.CONFIRMED));
+		serviceRequestList.add(new ServiceRequest("6", "1", "25-02-2021", "xyz@gmail.com", "gouravkansal0@gmail.com",
+				"NA", ServiceRequestStatus.CONFIRMED));
+		serviceRequestList.add(new ServiceRequest("7", "1", "25-02-2021", "xyz@gmail.com", "nimish@gmail.com", "NA",
+				ServiceRequestStatus.CONFIRMED));
+		serviceRequestList.add(new ServiceRequest("8", "1", "25-02-2021", "xyz@gmail.com", "nimish@gmail.com", "NA",
+				ServiceRequestStatus.CONFIRMED));
+		serviceRequestList.add(new ServiceRequest("9", "1", "25-02-2021", "xyz@gmail.com", "nimish@gmail.com", "NA",
+				ServiceRequestStatus.CONFIRMED));
+
 	}
 
 	@Override
 	public void sendsNotificationToServiceProviderList(List<ServiceProvider> serviceProviderList,
 			String serviceRequestId) {
-		Notification notification = new Notification(Utility.getRandomUuid(), LocalDateTime.now(),
-				NotificationStatus.PENDING, serviceRequestId);
-		notificationList.add(notification);
-		for (ServiceProvider serviceProvider : serviceProviderList) {
-			serviceProvider.getNotificationId().add(notification.getId());
-			System.out.println("Notification Sent With Notification Entity " + notification);
+		Boolean notificationExists = false;
+		Notification existingNotificationObject = null;
+		for (Notification existingNotification : notificationList) {
+			if(existingNotification.getServiceRequestId().equals(serviceRequestId)) {
+				existingNotificationObject = existingNotification;
+				existingNotificationObject.setStatus(NotificationStatus.PENDING);
+				notificationExists = true;
+			}
+			
 		}
+		if (notificationExists) {
+			notificationList.remove(existingNotificationObject);
+			
+		}
+			Notification notification = new Notification(Utility.getRandomUuid(), LocalDateTime.now(),
+					NotificationStatus.PENDING, serviceRequestId);
+			notificationList.add(notification);
+			for (ServiceProvider serviceProvider : serviceProviderList) {
+				serviceProvider.getNotificationId().add(notification.getId());
+				System.out.println("Notification Sent With Notification Entity " + notification);
+			}
+		
 		serviceProviderService.updateServiceProviderList(serviceProviderList);
-		/*
-		 * System.out.println(serviceProviderList);
-		 * System.out.println("Notification List = "+notificationList);
-		 * System.out.println("Complete Service Provider List "
-		 * +ServiceProviderServiceImpl.serviceProviderList);
-		 */
+		
 	}
 
 	@JmsListener(destination = "ServiceRequestReceivedFromAdmin")
@@ -73,8 +102,24 @@ public class NotificationServiceImpl implements NotificationService {
 		List<ServiceProvider> serviceProviderList = serviceProviderService.filterServiceProviderBasedOnServiceCategory(
 				mapper.convertServiceProviderModelListToEntityList(notificationRequestObject.getServiceProviderList()),
 				categoryId);
-		serviceRequestList
-				.add(mapper.convertServiceRequestModelToEntity(notificationRequestObject.getServiceRequest()));
+		ServiceRequest serviceRequestObject = mapper
+				.convertServiceRequestModelToEntity(notificationRequestObject.getServiceRequest());
+		System.out.println("New Request Object = " + serviceRequestObject);
+		ServiceRequest existingServiceRequestObject = ServiceProviderServiceImpl
+				.getServiceRequestById(serviceRequestObject.getId());
+		System.out.println("Existing Request = " + existingServiceRequestObject);
+		if (existingServiceRequestObject != null && existingServiceRequestObject.getStatusOfRequest()
+				.compareTo(ServiceRequestStatus.CANCELLEDBYSERVICEPROVIDER) == 0) {
+			System.out.println(
+					"Inside If of existing service request = " + existingServiceRequestObject.getStatusOfRequest());
+			existingServiceRequestObject.setStatusOfRequest(ServiceRequestStatus.PENDING);
+		} else {
+			System.out.println("Inside Else of existing");
+			serviceRequestList
+					.add(mapper.convertServiceRequestModelToEntity(notificationRequestObject.getServiceRequest()));
+		}
+
+		
 		sendsNotificationToServiceProviderList(serviceProviderList,
 				notificationRequestObject.getServiceRequest().getId());
 	}
@@ -113,10 +158,22 @@ public class NotificationServiceImpl implements NotificationService {
 				notificationIdList);
 		System.out.println("Motification ID List = " + notificationListOfServiceProvider);
 		List<Notification> pendingNotification = new ArrayList<>();
+
 		for (Notification notification : notificationListOfServiceProvider) {
+			String serviceRequestId = notification.getServiceRequestId();
+			ServiceRequest serviceRequest = ServiceProviderServiceImpl.getServiceRequestById(serviceRequestId);
 			if (notification.getStatus().compareTo(NotificationStatus.PENDING) == 0) {
-				pendingNotification.add(notification);
+				if (serviceRequest.getStatusOfRequest().compareTo(ServiceRequestStatus.CANCEL) != 0) {
+					pendingNotification.add(notification);
+				}
 			}
+			/*
+			 * if (notification.getStatus().compareTo(NotificationStatus.ACCEPT) == 0 &&
+			 * serviceRequest.getStatusOfRequest().compareTo(ServiceRequestStatus.PENDING)
+			 * == 0) { // This case is possible if the service provider cancels the request
+			 * after // accepting the request pendingNotification.add(notification); }
+			 */
+
 		}
 		System.out.println("SERVICE PROVIDER = " + serviceProvider);
 		System.out.println("Pending Notification = " + pendingNotification);
@@ -132,8 +189,18 @@ public class NotificationServiceImpl implements NotificationService {
 				notificationIdList);
 		List<Notification> acceptedNotification = new ArrayList<>();
 		for (Notification notification : notificationListOfServiceProvider) {
+
 			if (notification.getStatus().compareTo(NotificationStatus.ACCEPT) == 0) {
-				acceptedNotification.add(notification);
+				System.out.println("Service Request Id = " + notification.getServiceRequestId());
+				ServiceRequest serviceRequest = ServiceProviderServiceImpl
+						.getServiceRequestById(notification.getServiceRequestId());
+				System.out.println("Service Request Object = " + serviceRequest);
+				/*
+				 * if
+				 * (serviceRequest.getStatusOfRequest().compareTo(ServiceRequestStatus.PENDING)
+				 * == 0) { // Do Nothing System.out.println("Inside If"); } else
+				 */
+					acceptedNotification.add(notification);
 			}
 		}
 

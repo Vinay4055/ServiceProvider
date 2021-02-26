@@ -16,5 +16,5 @@ public interface ServiceProviderService {
 	public void updateServiceProviderList(List<ServiceProvider> modifiedList);
 	public Boolean acceptPendingNotification(String serviceProviderId,String notificationId);
 	public Boolean denyPendingNotification(String serviceProviderId,String notificationId);
-	
+	public Boolean cancelAcceptedServiceRequest(String serviceProviderId,String serviceRequestId);
 }

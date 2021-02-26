@@ -132,7 +132,7 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
 		}
 	}
 
-	public ServiceRequest getServiceRequestById(String serviceRequestId) {
+	public static ServiceRequest getServiceRequestById(String serviceRequestId) {
 		Optional<ServiceRequest> searchedServiceRequest = NotificationServiceImpl.serviceRequestList.stream()
 				.filter(serviceRequest -> serviceRequest.getId().equals(serviceRequestId)).findFirst();
 		if (searchedServiceRequest.isPresent()) {
@@ -175,8 +175,8 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
 					String serviceRequestId = pendingNotification.getServiceRequestId();
 					ServiceRequest serviceRequest = getServiceRequestById(serviceRequestId);
 					serviceRequest.setStatusOfRequest(ServiceRequestStatus.CONFIRMED);
+					serviceRequest.setEmailIdOfServiceProvider(serviceProvider.getEmail());
 					serviceProvider.getServiceRequestId().add(serviceRequest.getServiceId());
-					System.out.println("Notification List = " + NotificationServiceImpl.notificationList);
 
 					AcceptServiceRequestResponse acceptServiceRequestResponse = new AcceptServiceRequestResponse(
 							mapper.convertServiceProviderEntityToModel(serviceProvider), serviceRequestId);
@@ -222,5 +222,20 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
 
 	}
 
-	
+	@Override
+	public Boolean cancelAcceptedServiceRequest(String serviceProviderId, String serviceRequestId) {
+		ServiceProvider serviceProvider = getServiceProviderById(serviceProviderId);
+		ServiceRequest serviceRequest = getServiceRequestById(serviceRequestId);
+		if(serviceRequest!=null)
+		{
+			if (serviceRequest.getEmailIdOfServiceProvider().equals(serviceProvider.getEmail())) {
+				serviceRequest.setStatusOfRequest(ServiceRequestStatus.CANCELLEDBYSERVICEPROVIDER);
+				jmsTemplate.convertAndSend("ServiceRequestCancelledByServiceProviderEventForAdmin", gson.toJson(serviceRequestId));
+				jmsTemplate.convertAndSend("ServiceRequestCancelledByServiceProviderEventForManageServiceRequest", gson.toJson(serviceRequestId));
+				return true;
+			}
+			}
+		return false;
+	}
+
 }

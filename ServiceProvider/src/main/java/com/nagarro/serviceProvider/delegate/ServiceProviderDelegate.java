@@ -16,9 +16,12 @@ public class ServiceProviderDelegate {
 	@Autowired
 	@Qualifier("gson")
 	Gson gson;
+	String gatewayServiceUrl = "http://api-gateway:9999/";
+	String gatewayUrl = "http://localhost:9999/";
+	String url = gatewayUrl;
 	public String callServiceProvidedAndGetCategoryId(String serviceId) {
 		String response = restTemplate
-				.exchange("http://localhost:9999/serviceProvided/findCategoryId/{serviceId}"
+				.exchange(url+"serviceProvided/findCategoryId/{serviceId}"
 				, HttpMethod.GET
 				, null
 				, new ParameterizedTypeReference<String>() {

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.nagarro.serviceProvider.Mapper;
 import com.nagarro.serviceProvider.entity.Notification;
+import com.nagarro.serviceProvider.model.CancelServiceRequest;
 import com.nagarro.serviceProvider.model.NotificationActionRequest;
 import com.nagarro.serviceProvider.model.ServiceProvider;
 import com.nagarro.serviceProvider.service.NotificationService;
@@ -46,13 +47,15 @@ public class ServiceProviderController {
 	@GetMapping("/pendingNotification/{serviceProviderId}")
 	public ResponseEntity<List<Notification>> displayPendingNotifications(
 			@PathVariable(name = "serviceProviderId") String serviceProviderId) {
-		return new ResponseEntity<List<Notification>>(notificationService.getPendingNotifications(serviceProviderId), HttpStatus.FOUND);
+		return new ResponseEntity<List<Notification>>(notificationService.getPendingNotifications(serviceProviderId),
+				HttpStatus.FOUND);
 	}
 
 	@GetMapping("/acceptedNotification/{serviceProviderId}")
 	public ResponseEntity<List<Notification>> displayAcceptedNotifications(
 			@PathVariable(name = "serviceProviderId") String serviceProviderId) {
-		return new ResponseEntity<List<Notification>>(notificationService.getAcceptedNotifications(serviceProviderId), HttpStatus.FOUND);
+		return new ResponseEntity<List<Notification>>(notificationService.getAcceptedNotifications(serviceProviderId),
+				HttpStatus.FOUND);
 	}
 
 	@PutMapping("/acceptNotification/")
@@ -61,29 +64,46 @@ public class ServiceProviderController {
 		if (bindingResult.hasErrors()) {
 			return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
 		} else {
-			Boolean flag = serviceProviderService.acceptPendingNotification(notificationActionRequest.getServiceProviderId(),
-					notificationActionRequest.getNotificationId());
-			
-			if(flag)
-				return new ResponseEntity<Boolean>(flag,HttpStatus.ACCEPTED);
+			Boolean flag = serviceProviderService.acceptPendingNotification(
+					notificationActionRequest.getServiceProviderId(), notificationActionRequest.getNotificationId());
+
+			if (flag)
+				return new ResponseEntity<Boolean>(flag, HttpStatus.ACCEPTED);
 			else
-				return new ResponseEntity<Boolean>(flag,HttpStatus.NOT_FOUND);
+				return new ResponseEntity<Boolean>(flag, HttpStatus.NOT_FOUND);
 
 		}
 	}
+
 	@PutMapping("/denyNotification/")
 	public ResponseEntity<Void> denyPendingNotification(
 			@RequestBody @Valid NotificationActionRequest notificationActionRequest, BindingResult bindingResult) {
 		if (bindingResult.hasErrors()) {
 			return new ResponseEntity<Void>(HttpStatus.UNPROCESSABLE_ENTITY);
 		} else {
-			Boolean flag = serviceProviderService.denyPendingNotification(notificationActionRequest.getServiceProviderId(),
-					notificationActionRequest.getNotificationId());
-			if(flag)
+			Boolean flag = serviceProviderService.denyPendingNotification(
+					notificationActionRequest.getServiceProviderId(), notificationActionRequest.getNotificationId());
+			if (flag)
 				return new ResponseEntity<Void>(HttpStatus.ACCEPTED);
 			else
 				return new ResponseEntity<Void>(HttpStatus.NOT_FOUND);
 
 		}
+	}
+
+	@PutMapping("/cancelServiceRequest/")
+	public ResponseEntity<Boolean> cancelServiceRequest(@RequestBody @Valid CancelServiceRequest cancelServiceRequest,
+			BindingResult bindingResult) {
+		if (bindingResult.hasErrors()) {
+			return new ResponseEntity<Boolean>(HttpStatus.UNPROCESSABLE_ENTITY);
+		}
+		Boolean flag = serviceProviderService.cancelAcceptedServiceRequest(cancelServiceRequest.getServiceProviderId(),
+				cancelServiceRequest.getServiceRequestId());
+		System.out.println("Flag Value from controller = "+flag);
+		if (flag)
+			return new ResponseEntity<Boolean>(flag, HttpStatus.ACCEPTED);
+		else
+			return new ResponseEntity<Boolean>(flag, HttpStatus.NOT_FOUND);
+
 	}
 }
