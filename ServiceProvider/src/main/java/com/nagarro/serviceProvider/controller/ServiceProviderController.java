@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.nagarro.serviceProvider.Mapper;
-import com.nagarro.serviceProvider.entity.Notification;
 import com.nagarro.serviceProvider.model.CancelServiceRequest;
 import com.nagarro.serviceProvider.model.NotificationActionRequest;
+import com.nagarro.serviceProvider.model.ResponseForServiceProvider;
 import com.nagarro.serviceProvider.model.ServiceProvider;
 import com.nagarro.serviceProvider.service.NotificationService;
 import com.nagarro.serviceProvider.service.ServiceProviderService;
@@ -36,7 +36,8 @@ public class ServiceProviderController {
 	@GetMapping("/{district}")
 	public ResponseEntity<List<ServiceProvider>> getServiceProviderBasedOnLocation(
 			@PathVariable(name = "district") String district) {
-		if (!serviceProviderService.getServiceProvidersBasedOnDistrict(district).isEmpty()) {
+		System.out.println("Inside Controller");
+		if (serviceProviderService.getServiceProvidersBasedOnDistrict(district) != null) {
 			List<ServiceProvider> serviceProvider = mapper.convertServiceProviderEntityListToModelList(
 					serviceProviderService.getServiceProvidersBasedOnDistrict(district));
 			return new ResponseEntity<List<ServiceProvider>>(serviceProvider, HttpStatus.FOUND);
@@ -45,16 +46,16 @@ public class ServiceProviderController {
 	}
 
 	@GetMapping("/pendingNotification/{serviceProviderId}")
-	public ResponseEntity<List<Notification>> displayPendingNotifications(
+	public ResponseEntity<List<ResponseForServiceProvider>> displayPendingNotifications(
 			@PathVariable(name = "serviceProviderId") String serviceProviderId) {
-		return new ResponseEntity<List<Notification>>(notificationService.getPendingNotifications(serviceProviderId),
+		return new ResponseEntity<List<ResponseForServiceProvider>>(notificationService.getPendingNotifications(serviceProviderId),
 				HttpStatus.FOUND);
 	}
 
 	@GetMapping("/acceptedNotification/{serviceProviderId}")
-	public ResponseEntity<List<Notification>> displayAcceptedNotifications(
+	public ResponseEntity<List<ResponseForServiceProvider>> displayAcceptedNotifications(
 			@PathVariable(name = "serviceProviderId") String serviceProviderId) {
-		return new ResponseEntity<List<Notification>>(notificationService.getAcceptedNotifications(serviceProviderId),
+		return new ResponseEntity<List<ResponseForServiceProvider>>(notificationService.getAcceptedNotifications(serviceProviderId),
 				HttpStatus.FOUND);
 	}
 

@@ -59,4 +59,9 @@ public class Mapper {
 			ServiceRequest source) {
 		return modelMapper.map(source, com.nagarro.serviceProvider.entity.ServiceRequest.class);
 	}
+	
+	public ServiceRequest convertServiceRequestEntityToModel(
+			com.nagarro.serviceProvider.entity.ServiceRequest source) {
+		return modelMapper.map(source, ServiceRequest.class);
+	}
 }

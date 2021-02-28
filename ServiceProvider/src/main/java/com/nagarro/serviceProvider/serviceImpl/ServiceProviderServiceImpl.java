@@ -1,6 +1,7 @@
 package com.nagarro.serviceProvider.serviceImpl;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -19,6 +20,7 @@ import com.nagarro.serviceProvider.entity.Notification;
 import com.nagarro.serviceProvider.entity.ServiceProvider;
 import com.nagarro.serviceProvider.entity.ServiceRequest;
 import com.nagarro.serviceProvider.model.AcceptServiceRequestResponse;
+import com.nagarro.serviceProvider.model.ResponseForServiceProvider;
 import com.nagarro.serviceProvider.service.NotificationService;
 import com.nagarro.serviceProvider.service.ServiceProviderService;
 
@@ -161,18 +163,20 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
 	@Override
 	public Boolean acceptPendingNotification(String serviceProviderId, String notificationId) {
 		ServiceProvider serviceProvider = getServiceProviderById(serviceProviderId);
-		List<Notification> pendingNotificationList = notificationService.getPendingNotifications(serviceProviderId);
-		for (Notification pendingNotification : pendingNotificationList) {
-			if (pendingNotification.getId().equals(notificationId)) {
-				if (pendingNotification.getStatus().compareTo(NotificationStatus.PENDING) == 0) { // Again Checking The
+		List<ResponseForServiceProvider> pendingNotificationListResponse = notificationService
+				.getPendingNotifications(serviceProviderId);
+		for (ResponseForServiceProvider pendingNotificationResponse : pendingNotificationListResponse) {
+			if (pendingNotificationResponse.getNotification().getId().equals(notificationId)) {
+				if (pendingNotificationResponse.getNotification().getStatus()
+						.compareTo(NotificationStatus.PENDING) == 0) { // Again Checking The
 					List<ServiceProvider> otherServiceProviders = getServiceProviderSubscribedWithNotification(
 							notificationId); // Status
 					for (ServiceProvider otherServiceProvider : otherServiceProviders) {
 						if (!serviceProviderId.equals(otherServiceProvider.getId()))
 							otherServiceProvider.getNotificationId().remove(notificationId);
 					}
-					pendingNotification.setStatus(NotificationStatus.ACCEPT);
-					String serviceRequestId = pendingNotification.getServiceRequestId();
+					pendingNotificationResponse.getNotification().setStatus(NotificationStatus.ACCEPT);
+					String serviceRequestId = pendingNotificationResponse.getNotification().getServiceRequestId();
 					ServiceRequest serviceRequest = getServiceRequestById(serviceRequestId);
 					serviceRequest.setStatusOfRequest(ServiceRequestStatus.CONFIRMED);
 					serviceRequest.setEmailIdOfServiceProvider(serviceProvider.getEmail());
@@ -197,9 +201,14 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
 	public Boolean denyPendingNotification(String serviceProviderId, String notificationId) {
 		ServiceProvider serviceProvider = getServiceProviderById(serviceProviderId);
 		List<String> notificationIdList = serviceProvider.getNotificationId();
-		for (String notification : notificationIdList) {
-			if (notification.equals(notificationId))
-				notificationIdList.remove(notificationId);
+
+		Iterator<String> iterator = notificationIdList.iterator();
+
+		while (iterator.hasNext()) {
+			if (iterator.next().equals(notificationId)) {
+				iterator.remove();
+				return true;
+			}
 		}
 		return false;
 
@@ -226,15 +235,16 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
 	public Boolean cancelAcceptedServiceRequest(String serviceProviderId, String serviceRequestId) {
 		ServiceProvider serviceProvider = getServiceProviderById(serviceProviderId);
 		ServiceRequest serviceRequest = getServiceRequestById(serviceRequestId);
-		if(serviceRequest!=null)
-		{
+		if (serviceRequest != null) {
 			if (serviceRequest.getEmailIdOfServiceProvider().equals(serviceProvider.getEmail())) {
 				serviceRequest.setStatusOfRequest(ServiceRequestStatus.CANCELLEDBYSERVICEPROVIDER);
-				jmsTemplate.convertAndSend("ServiceRequestCancelledByServiceProviderEventForAdmin", gson.toJson(serviceRequestId));
-				jmsTemplate.convertAndSend("ServiceRequestCancelledByServiceProviderEventForManageServiceRequest", gson.toJson(serviceRequestId));
+				jmsTemplate.convertAndSend("ServiceRequestCancelledByServiceProviderEventForAdmin",
+						gson.toJson(serviceRequestId));
+				jmsTemplate.convertAndSend("ServiceRequestCancelledByServiceProviderEventForManageServiceRequest",
+						gson.toJson(serviceRequestId));
 				return true;
 			}
-			}
+		}
 		return false;
 	}
 

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import com.google.gson.Gson;
+import com.nagarro.serviceProvider.model.ServiceProvided;
 @Component
 public class ServiceProviderDelegate {
 	@Autowired
@@ -29,6 +30,16 @@ public class ServiceProviderDelegate {
 		String categoryId = gson.fromJson(response,String.class);
 		System.out.println("cATEGOry Id = "+categoryId);
 		return categoryId;		 
+	}
+	public ServiceProvided callServiceProvidedAndGetServiceDetails(String serviceId) {
+		String response = restTemplate
+				.exchange(url+"serviceProvided/{serviceId}"
+				, HttpMethod.GET
+				, null
+				, new ParameterizedTypeReference<String>() {
+			}, serviceId).getBody();
+		ServiceProvided serviceDetails = gson.fromJson(response,ServiceProvided.class);
+		return serviceDetails;		 
 	}
 	@Bean
 	public RestTemplate restTemplate() {

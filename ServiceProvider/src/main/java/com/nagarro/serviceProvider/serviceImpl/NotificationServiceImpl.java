@@ -17,6 +17,8 @@ import com.nagarro.serviceProvider.entity.Notification;
 import com.nagarro.serviceProvider.entity.ServiceProvider;
 import com.nagarro.serviceProvider.entity.ServiceRequest;
 import com.nagarro.serviceProvider.model.NotificationRequest;
+import com.nagarro.serviceProvider.model.ResponseForServiceProvider;
+import com.nagarro.serviceProvider.model.ServiceProvided;
 import com.nagarro.serviceProvider.service.NotificationService;
 import com.nagarro.serviceProvider.service.ServiceProviderService;
 import com.nagarro.serviceProvider.util.Utility;
@@ -150,57 +152,46 @@ public class NotificationServiceImpl implements NotificationService {
 	}
 
 	@Override
-	public List<Notification> getPendingNotifications(String serviceProviderId) {
+	public List<ResponseForServiceProvider> getPendingNotifications(String serviceProviderId) {
 		ServiceProvider serviceProvider = serviceProviderService.getServiceProviderById(serviceProviderId);
 		List<String> notificationIdList = serviceProvider.getNotificationId();
 
 		List<Notification> notificationListOfServiceProvider = getNotificationListFromNotificationIdList(
 				notificationIdList);
 		System.out.println("Motification ID List = " + notificationListOfServiceProvider);
-		List<Notification> pendingNotification = new ArrayList<>();
+		List<ResponseForServiceProvider> pendingNotification = new ArrayList<>();
 
 		for (Notification notification : notificationListOfServiceProvider) {
 			String serviceRequestId = notification.getServiceRequestId();
 			ServiceRequest serviceRequest = ServiceProviderServiceImpl.getServiceRequestById(serviceRequestId);
 			if (notification.getStatus().compareTo(NotificationStatus.PENDING) == 0) {
 				if (serviceRequest.getStatusOfRequest().compareTo(ServiceRequestStatus.CANCEL) != 0) {
-					pendingNotification.add(notification);
+					ServiceProvided serviceProvided = serviceProviderDelegate.callServiceProvidedAndGetServiceDetails(serviceRequest.getServiceId());
+					pendingNotification.add(new ResponseForServiceProvider(mapper.convertServiceRequestEntityToModel(serviceRequest), notification,serviceProvided));
 				}
 			}
-			/*
-			 * if (notification.getStatus().compareTo(NotificationStatus.ACCEPT) == 0 &&
-			 * serviceRequest.getStatusOfRequest().compareTo(ServiceRequestStatus.PENDING)
-			 * == 0) { // This case is possible if the service provider cancels the request
-			 * after // accepting the request pendingNotification.add(notification); }
-			 */
+			
 
 		}
-		System.out.println("SERVICE PROVIDER = " + serviceProvider);
-		System.out.println("Pending Notification = " + pendingNotification);
 		return pendingNotification;
 	}
 
 	@Override
-	public List<Notification> getAcceptedNotifications(String serviceProviderId) {
+	public List<ResponseForServiceProvider> getAcceptedNotifications(String serviceProviderId) {
 		ServiceProvider serviceProvider = serviceProviderService.getServiceProviderById(serviceProviderId);
 		List<String> notificationIdList = serviceProvider.getNotificationId();
 
 		List<Notification> notificationListOfServiceProvider = getNotificationListFromNotificationIdList(
 				notificationIdList);
-		List<Notification> acceptedNotification = new ArrayList<>();
+		List<ResponseForServiceProvider> acceptedNotification = new ArrayList<>();
 		for (Notification notification : notificationListOfServiceProvider) {
 
 			if (notification.getStatus().compareTo(NotificationStatus.ACCEPT) == 0) {
-				System.out.println("Service Request Id = " + notification.getServiceRequestId());
 				ServiceRequest serviceRequest = ServiceProviderServiceImpl
 						.getServiceRequestById(notification.getServiceRequestId());
-				System.out.println("Service Request Object = " + serviceRequest);
-				/*
-				 * if
-				 * (serviceRequest.getStatusOfRequest().compareTo(ServiceRequestStatus.PENDING)
-				 * == 0) { // Do Nothing System.out.println("Inside If"); } else
-				 */
-					acceptedNotification.add(notification);
+				ServiceProvided serviceProvided = serviceProviderDelegate.callServiceProvidedAndGetServiceDetails(serviceRequest.getServiceId());
+
+				acceptedNotification.add(new ResponseForServiceProvider(mapper.convertServiceRequestEntityToModel(serviceRequest), notification,serviceProvided));
 			}
 		}
 

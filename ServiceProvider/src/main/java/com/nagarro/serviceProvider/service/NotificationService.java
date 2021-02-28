@@ -4,13 +4,13 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.nagarro.serviceProvider.entity.Notification;
 import com.nagarro.serviceProvider.entity.ServiceProvider;
+import com.nagarro.serviceProvider.model.ResponseForServiceProvider;
 
 @Service
 public interface NotificationService {
 	public void sendsNotificationToServiceProviderList(List<ServiceProvider> serviceProvider,String serviceRequestId);
-	public List<Notification> getPendingNotifications(String serviceProviderId);
-	public List<Notification> getAcceptedNotifications(String serviceProviderId);
+	public List<ResponseForServiceProvider> getPendingNotifications(String serviceProviderId);
+	public List<ResponseForServiceProvider> getAcceptedNotifications(String serviceProviderId);
 
 }
